@@ -1,0 +1,36 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "eu.ansvar/danish-energy-regulation-mcp",
+  "description": "Query Danish energy regulation: Energistyrelsen policies, Forsyningstilsynet tariff decisions, Energinet grid codes, Sikkerhedsstyrelsen safety rules",
+  "repository": {
+    "url": "https://github.com/Ansvar-Systems/danish-energy-regulation-mcp",
+    "source": "github"
+  },
+  "homepage": "https://ansvar.eu",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "keywords": [
+    "energistyrelsen",
+    "forsyningstilsynet",
+    "energinet",
+    "sikkerhedsstyrelsen",
+    "danish-energy-regulation",
+    "denmark",
+    "energy",
+    "grid-code",
+    "tariff",
+    "compliance",
+    "mcp",
+    "ansvar"
+  ],
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@ansvar/danish-energy-regulation-mcp",
+      "version": "0.1.0",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ]
+}
