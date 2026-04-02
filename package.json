@@ -47,7 +47,11 @@
     "start": "node dist/src/http-server.js",
     "seed": "npx tsx scripts/seed-sample.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "ingest:full": "tsx scripts/ingest-all.ts --force",
+    "freshness:check": "tsx scripts/check-freshness.ts",
+    "coverage:update": "tsx scripts/update-coverage.ts",
+    "coverage:verify": "tsx scripts/verify-coverage.ts"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.12",

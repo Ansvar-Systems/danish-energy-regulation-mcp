@@ -19,6 +19,7 @@ import { SCHEMA_SQL } from "../src/db.js";
 import { EXPANSION_ENS_REGS, EXPANSION_SIK_REGS } from "./data/expansion-regulations.js";
 import { EXPANSION_GRID_CODES } from "./data/expansion-grid-codes.js";
 import { EXPANSION_DECISIONS } from "./data/expansion-decisions.js";
+import { EXPANSION_FT_REGS } from "./data/expansion-ft-regulations.js";
 
 const DB_PATH = process.env["DK_ENERGY_DB_PATH"] ?? "data/dk-energy.db";
 const force = process.argv.includes("--force");
@@ -91,7 +92,7 @@ const sikRegs = [
   ["sikkerhedsstyrelsen", "BEK om sikkerhed for roerledninger til gas", "Bekendtgoerelse om sikkerhed for roerledninger til gas", "Krav til sikkerhed for gasroerledninger, herunder transmissions-, distributions- og stikledninger. Daekker materialevalg, svejsning, tryktestning, katodisk beskyttelse, overvaagning og laekagesoeegning. Ledningsejeren skal have beredskabsplan for gaslzek og roerbrud. Sikkerhedsstyrelsen foerer tilsyn.", "safety_rule", "in_force", "2018-04-01", "https://sik.dk/erhverv/gasinstallationer-og-gasanlaeg"],
 ];
 
-const allRegs = [...ensRegs, ...sikRegs, ...EXPANSION_ENS_REGS, ...EXPANSION_SIK_REGS];
+const allRegs = [...ensRegs, ...sikRegs, ...EXPANSION_ENS_REGS, ...EXPANSION_SIK_REGS, ...EXPANSION_FT_REGS];
 const insertRegBatch = db.transaction(() => {
   for (const r of allRegs) {
     insertRegulation.run(r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7]);
@@ -100,7 +101,8 @@ const insertRegBatch = db.transaction(() => {
 insertRegBatch();
 const ensCount = ensRegs.length + EXPANSION_ENS_REGS.length;
 const sikCount = sikRegs.length + EXPANSION_SIK_REGS.length;
-console.log(`Inserted ${ensCount} Energistyrelsen + ${sikCount} Sikkerhedsstyrelsen = ${allRegs.length} regulations`);
+const ftCount = EXPANSION_FT_REGS.length;
+console.log(`Inserted ${ensCount} Energistyrelsen + ${sikCount} Sikkerhedsstyrelsen + ${ftCount} Forsyningstilsynet = ${allRegs.length} regulations`);
 
 // ═══════════════════════════════════════════════════════════════
 // GRID CODES (Energinet)
@@ -215,6 +217,7 @@ const stats = {
   decisions: (db.prepare("SELECT count(*) as n FROM decisions").get() as { n: number }).n,
   ens: (db.prepare("SELECT count(*) as n FROM regulations WHERE regulator_id = 'energistyrelsen'").get() as { n: number }).n,
   sik: (db.prepare("SELECT count(*) as n FROM regulations WHERE regulator_id = 'sikkerhedsstyrelsen'").get() as { n: number }).n,
+  ft: (db.prepare("SELECT count(*) as n FROM regulations WHERE regulator_id = 'forsyningstilsynet'").get() as { n: number }).n,
 };
 
 const insertMeta = db.prepare("INSERT OR REPLACE INTO db_metadata (key, value) VALUES (?, ?)");
@@ -229,7 +232,7 @@ insertMeta.run("total_records", String(stats.regulations + stats.grid_codes + st
 
 console.log(`\nDatabase summary:`);
 console.log(`  Regulators:         ${stats.regulators}`);
-console.log(`  Regulations:        ${stats.regulations} (ENS: ${stats.ens}, SIK: ${stats.sik})`);
+console.log(`  Regulations:        ${stats.regulations} (ENS: ${stats.ens}, SIK: ${stats.sik}, FT: ${stats.ft})`);
 console.log(`  Grid codes:         ${stats.grid_codes} (Energinet)`);
 console.log(`  Decisions:          ${stats.decisions} (Forsyningstilsynet)`);
 console.log(`  Total documents:    ${stats.regulations + stats.grid_codes + stats.decisions}`);

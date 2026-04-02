@@ -29,6 +29,9 @@ import {
   searchGridCodes,
   getGridCode,
   searchDecisions,
+  getMetadataValue,
+  getRecordCounts,
+  getRegulationCountByRegulator,
 } from "./db.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -174,6 +177,26 @@ const TOOLS = [
       required: [],
     },
   },
+  {
+    name: "dk_energy_list_sources",
+    description:
+      "List data sources with record counts, provenance URLs, and last refresh dates.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {},
+      required: [],
+    },
+  },
+  {
+    name: "dk_energy_check_data_freshness",
+    description:
+      "Check data freshness for each source. Reports staleness and provides update instructions.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {},
+      required: [],
+    },
+  },
 ];
 
 // --- Zod schemas ---
@@ -222,17 +245,50 @@ const SearchDecisionsArgs = z.object({
 
 // --- Helpers ---
 
+let _cachedBuildDate: string | null = null;
+
+function dbBuildDate(): string {
+  if (_cachedBuildDate) return _cachedBuildDate;
+  try {
+    _cachedBuildDate = getMetadataValue("build_date") ?? "unknown";
+  } catch {
+    _cachedBuildDate = "unknown";
+  }
+  return _cachedBuildDate;
+}
+
+function makeMeta() {
+  return {
+    _meta: {
+      disclaimer:
+        "Reference data only — not legal or regulatory advice. Verify against official sources.",
+      data_source:
+        "Danish energy regulators (ens.dk, energinet.dk, forsyningstilsynet.dk, sik.dk)",
+      database_built: dbBuildDate(),
+    },
+  };
+}
+
 function textContent(data: unknown) {
+  const payload =
+    data !== null && typeof data === "object" && !Array.isArray(data)
+      ? { ...(data as Record<string, unknown>), ...makeMeta() }
+      : { data, ...makeMeta() };
   return {
     content: [
-      { type: "text" as const, text: JSON.stringify(data, null, 2) },
+      { type: "text" as const, text: JSON.stringify(payload, null, 2) },
     ],
   };
 }
 
 function errorContent(message: string) {
   return {
-    content: [{ type: "text" as const, text: message }],
+    content: [
+      {
+        type: "text" as const,
+        text: JSON.stringify({ error: message, ...makeMeta() }, null, 2),
+      },
+    ],
     isError: true as const,
   };
 }
@@ -316,6 +372,103 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             url: r.url,
           })),
           tools: TOOLS.map((t) => ({ name: t.name, description: t.description })),
+        });
+      }
+
+      case "dk_energy_list_sources": {
+        const counts = getRecordCounts();
+        const sources = [
+          {
+            id: "energistyrelsen",
+            name: "Energistyrelsen (Danish Energy Agency)",
+            url: "https://ens.dk",
+            record_count: getRegulationCountByRegulator("energistyrelsen"),
+            data_type: "regulations",
+            last_refresh: dbBuildDate(),
+            refresh_frequency: "quarterly",
+          },
+          {
+            id: "forsyningstilsynet",
+            name: "Forsyningstilsynet (Danish Utility Regulator)",
+            url: "https://forsyningstilsynet.dk",
+            record_count:
+              getRegulationCountByRegulator("forsyningstilsynet") + counts.decisions,
+            data_type: "regulations + decisions",
+            last_refresh: dbBuildDate(),
+            refresh_frequency: "quarterly",
+          },
+          {
+            id: "energinet",
+            name: "Energinet (Danish TSO)",
+            url: "https://energinet.dk",
+            record_count: counts.grid_codes,
+            data_type: "grid_codes",
+            last_refresh: dbBuildDate(),
+            refresh_frequency: "quarterly",
+          },
+          {
+            id: "sikkerhedsstyrelsen",
+            name: "Sikkerhedsstyrelsen (Danish Safety Technology Authority)",
+            url: "https://sik.dk",
+            record_count: getRegulationCountByRegulator("sikkerhedsstyrelsen"),
+            data_type: "regulations",
+            last_refresh: dbBuildDate(),
+            refresh_frequency: "quarterly",
+          },
+        ];
+        return textContent({
+          sources,
+          total_records: counts.regulations + counts.grid_codes + counts.decisions,
+        });
+      }
+
+      case "dk_energy_check_data_freshness": {
+        const buildDate = dbBuildDate();
+        const buildMs = buildDate !== "unknown" ? Date.parse(buildDate) : NaN;
+        const nowMs = Date.now();
+
+        const frequencyDays: Record<string, number> = {
+          quarterly: 90,
+        };
+
+        const sourceEntries = [
+          { source: "Energistyrelsen (ens.dk)", frequency: "quarterly" },
+          { source: "Forsyningstilsynet (forsyningstilsynet.dk)", frequency: "quarterly" },
+          { source: "Energinet (energinet.dk)", frequency: "quarterly" },
+          { source: "Sikkerhedsstyrelsen (sik.dk)", frequency: "quarterly" },
+        ];
+
+        const rows = sourceEntries.map((s) => {
+          let status = "Unknown";
+          if (!isNaN(buildMs)) {
+            const thresholdMs = (frequencyDays[s.frequency] ?? 90) * 86_400_000;
+            const ageMs = nowMs - buildMs;
+            if (ageMs <= thresholdMs) {
+              status = "Current";
+            } else if (ageMs <= thresholdMs * 1.5) {
+              status = "Due";
+            } else {
+              status = "OVERDUE";
+            }
+          }
+          return { source: s.source, last_refresh: buildDate, frequency: s.frequency, status };
+        });
+
+        const header = "| Source | Last Refresh | Frequency | Status |";
+        const sep = "|---|---|---|---|";
+        const tableRows = rows.map(
+          (r) => `| ${r.source} | ${r.last_refresh} | ${r.frequency} | ${r.status} |`,
+        );
+        const table = [header, sep, ...tableRows].join("\n");
+
+        const updateInstructions =
+          "To refresh data, run: npx tsx scripts/ingest-all.ts --force";
+
+        return textContent({
+          freshness_table: table,
+          build_date: buildDate,
+          update_instructions: updateInstructions,
+          entries: rows,
         });
       }
 

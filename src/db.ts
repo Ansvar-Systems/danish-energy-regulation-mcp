@@ -135,6 +135,12 @@ CREATE TRIGGER IF NOT EXISTS decisions_au AFTER UPDATE ON decisions BEGIN
   INSERT INTO decisions_fts(rowid, reference, title, text, parties)
   VALUES (new.id, new.reference, COALESCE(new.title, ''), new.text, COALESCE(new.parties, ''));
 END;
+
+CREATE TABLE IF NOT EXISTS db_metadata (
+  key          TEXT PRIMARY KEY,
+  value        TEXT,
+  last_updated TEXT DEFAULT (datetime('now'))
+);
 `;
 
 // --- Types ---
@@ -356,4 +362,29 @@ export function getDecision(id: number): Decision | null {
       .prepare("SELECT * FROM decisions WHERE id = ?")
       .get(id) as Decision | undefined) ?? null
   );
+}
+
+// --- Metadata queries ---
+
+export function getMetadataValue(key: string): string | null {
+  const db = getDb();
+  const row = db
+    .prepare("SELECT value FROM db_metadata WHERE key = ?")
+    .get(key) as { value: string } | undefined;
+  return row?.value ?? null;
+}
+
+export function getRecordCounts(): { regulations: number; grid_codes: number; decisions: number } {
+  const db = getDb();
+  const regs = (db.prepare("SELECT count(*) as n FROM regulations").get() as { n: number }).n;
+  const gc = (db.prepare("SELECT count(*) as n FROM grid_codes").get() as { n: number }).n;
+  const dec = (db.prepare("SELECT count(*) as n FROM decisions").get() as { n: number }).n;
+  return { regulations: regs, grid_codes: gc, decisions: dec };
+}
+
+export function getRegulationCountByRegulator(regulatorId: string): number {
+  const db = getDb();
+  return (db
+    .prepare("SELECT count(*) as n FROM regulations WHERE regulator_id = ?")
+    .get(regulatorId) as { n: number }).n;
 }
