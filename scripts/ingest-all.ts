@@ -16,6 +16,9 @@ import Database from "better-sqlite3";
 import { existsSync, mkdirSync, unlinkSync } from "node:fs";
 import { dirname } from "node:path";
 import { SCHEMA_SQL } from "../src/db.js";
+import { EXPANSION_ENS_REGS, EXPANSION_SIK_REGS } from "./data/expansion-regulations.js";
+import { EXPANSION_GRID_CODES } from "./data/expansion-grid-codes.js";
+import { EXPANSION_DECISIONS } from "./data/expansion-decisions.js";
 
 const DB_PATH = process.env["DK_ENERGY_DB_PATH"] ?? "data/dk-energy.db";
 const force = process.argv.includes("--force");
@@ -88,13 +91,16 @@ const sikRegs = [
   ["sikkerhedsstyrelsen", "BEK om sikkerhed for roerledninger til gas", "Bekendtgoerelse om sikkerhed for roerledninger til gas", "Krav til sikkerhed for gasroerledninger, herunder transmissions-, distributions- og stikledninger. Daekker materialevalg, svejsning, tryktestning, katodisk beskyttelse, overvaagning og laekagesoeegning. Ledningsejeren skal have beredskabsplan for gaslzek og roerbrud. Sikkerhedsstyrelsen foerer tilsyn.", "safety_rule", "in_force", "2018-04-01", "https://sik.dk/erhverv/gasinstallationer-og-gasanlaeg"],
 ];
 
+const allRegs = [...ensRegs, ...sikRegs, ...EXPANSION_ENS_REGS, ...EXPANSION_SIK_REGS];
 const insertRegBatch = db.transaction(() => {
-  for (const r of [...ensRegs, ...sikRegs]) {
+  for (const r of allRegs) {
     insertRegulation.run(r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7]);
   }
 });
 insertRegBatch();
-console.log(`Inserted ${ensRegs.length} Energistyrelsen + ${sikRegs.length} Sikkerhedsstyrelsen = ${ensRegs.length + sikRegs.length} regulations`);
+const ensCount = ensRegs.length + EXPANSION_ENS_REGS.length;
+const sikCount = sikRegs.length + EXPANSION_SIK_REGS.length;
+console.log(`Inserted ${ensCount} Energistyrelsen + ${sikCount} Sikkerhedsstyrelsen = ${allRegs.length} regulations`);
 
 // ═══════════════════════════════════════════════════════════════
 // GRID CODES (Energinet)
@@ -128,13 +134,14 @@ const gridCodes = [
   ["Tilslutningsvilkaar for elproduktion", "Energinets tilslutningsvilkaar for nye elproduktionsanlæg", "Generelle vilkaar for tilslutning af nye elproduktionsanlæg til det danske transmissions- og distributionsnet. Processen fra anmodning til idriftsaettelse: tilslutningsanmodning, kapacitetsanalyse, tilslutningsaftale, teknisk projektering, idriftsaettelsestest, endelig godkendelse. Vilkaarene supplerer de tekniske forskrifter med procedurelle krav.", "grid_connection", "1.0", "2023-01-01", "https://energinet.dk/regler/el"],
 ];
 
+const allGridCodes = [...gridCodes, ...EXPANSION_GRID_CODES];
 const insertGCBatch = db.transaction(() => {
-  for (const g of gridCodes) {
+  for (const g of allGridCodes) {
     insertGridCode.run(g[0], g[1], g[2], g[3], g[4], g[5], g[6]);
   }
 });
 insertGCBatch();
-console.log(`Inserted ${gridCodes.length} Energinet grid codes`);
+console.log(`Inserted ${allGridCodes.length} Energinet grid codes`);
 
 // ═══════════════════════════════════════════════════════════════
 // DECISIONS (Forsyningstilsynet)
@@ -170,13 +177,14 @@ const decisions = [
   ["FT/2024/EL/INDBERETNING", "Hoering: Bekendtgoerelse om elhandelsvirksomheders indberetning af forsyningsafbrydelser", "Ny bekendtgoerelse om elhandelsvirksomheders pligt til at indberette forsyningsafbrydelser til Forsyningstilsynet. Formaaet er at styrke forbrugerbeskyttelsen og give Forsyningstilsynet bedre overblik over leveringssikkerheden i elsektoren.", "methodology", "2024-01-01", "Alle elhandelsvirksomheder", "https://forsyningstilsynet.dk/lovgivning/hoeringer/hoering-vedr-ny-bekendtgoerelse-om-elhandelsvirksomheders-indberetning-af-forsyningsafbrydelser"],
 ];
 
+const allDecisions = [...decisions, ...EXPANSION_DECISIONS];
 const insertDecBatch = db.transaction(() => {
-  for (const d of decisions) {
+  for (const d of allDecisions) {
     insertDecision.run(d[0], d[1], d[2], d[3], d[4], d[5], d[6]);
   }
 });
 insertDecBatch();
-console.log(`Inserted ${decisions.length} Forsyningstilsynet decisions`);
+console.log(`Inserted ${allDecisions.length} Forsyningstilsynet decisions`);
 
 // ═══════════════════════════════════════════════════════════════
 // REBUILD FTS INDEXES
@@ -190,6 +198,16 @@ db.exec("INSERT INTO decisions_fts(decisions_fts) VALUES('rebuild')");
 // SUMMARY
 // ═══════════════════════════════════════════════════════════════
 
+// ═══════════════════════════════════════════════════════════════
+// DB METADATA
+// ═══════════════════════════════════════════════════════════════
+
+db.exec(`CREATE TABLE IF NOT EXISTS db_metadata (
+  key   TEXT PRIMARY KEY,
+  value TEXT,
+  last_updated TEXT DEFAULT (datetime('now'))
+)`);
+
 const stats = {
   regulators: (db.prepare("SELECT count(*) as n FROM regulators").get() as { n: number }).n,
   regulations: (db.prepare("SELECT count(*) as n FROM regulations").get() as { n: number }).n,
@@ -198,6 +216,16 @@ const stats = {
   ens: (db.prepare("SELECT count(*) as n FROM regulations WHERE regulator_id = 'energistyrelsen'").get() as { n: number }).n,
   sik: (db.prepare("SELECT count(*) as n FROM regulations WHERE regulator_id = 'sikkerhedsstyrelsen'").get() as { n: number }).n,
 };
+
+const insertMeta = db.prepare("INSERT OR REPLACE INTO db_metadata (key, value) VALUES (?, ?)");
+insertMeta.run("schema_version", "1.0");
+insertMeta.run("tier", "free");
+insertMeta.run("domain", "danish-energy-regulation");
+insertMeta.run("build_date", new Date().toISOString().split("T")[0]);
+insertMeta.run("regulations_count", String(stats.regulations));
+insertMeta.run("grid_codes_count", String(stats.grid_codes));
+insertMeta.run("decisions_count", String(stats.decisions));
+insertMeta.run("total_records", String(stats.regulations + stats.grid_codes + stats.decisions));
 
 console.log(`\nDatabase summary:`);
 console.log(`  Regulators:         ${stats.regulators}`);
