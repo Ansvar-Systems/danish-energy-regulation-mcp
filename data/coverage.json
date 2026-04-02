@@ -11,12 +11,12 @@
       "authority": "Energistyrelsen",
       "url": "https://ens.dk",
       "version": "2024-2025 publications",
-      "item_count": 14,
+      "item_count": 79,
       "item_type": "regulation",
-      "last_refresh": "2026-03-30",
+      "last_refresh": "2026-04-02",
       "refresh_frequency": "quarterly",
       "completeness": "partial",
-      "completeness_note": "Seed dataset — 14 of ~100+ active bekendtgoerelser and vejledninger"
+      "completeness_note": "79 regulations covering NIS2/CER, electricity, renewables, efficiency, gas, heat, oil, climate, offshore wind, PtX"
     },
     {
       "id": "sikkerhedsstyrelsen",
@@ -24,12 +24,12 @@
       "authority": "Sikkerhedsstyrelsen",
       "url": "https://sik.dk",
       "version": "Current safety rules",
-      "item_count": 7,
+      "item_count": 24,
       "item_type": "regulation",
-      "last_refresh": "2026-03-30",
+      "last_refresh": "2026-04-02",
       "refresh_frequency": "quarterly",
       "completeness": "partial",
-      "completeness_note": "Seed dataset — 7 of ~30 active safety BEKs and rules"
+      "completeness_note": "24 regulations covering electrical/gas safety, installations, inspections, authorization, product safety"
     },
     {
       "id": "energinet",
@@ -37,12 +37,12 @@
       "authority": "Energinet",
       "url": "https://energinet.dk",
       "version": "Current grid codes",
-      "item_count": 12,
+      "item_count": 36,
       "item_type": "grid_code",
-      "last_refresh": "2026-03-30",
+      "last_refresh": "2026-04-02",
       "refresh_frequency": "quarterly",
-      "completeness": "partial",
-      "completeness_note": "Seed dataset — 12 of ~40+ TF and Forskrift series documents"
+      "completeness": "full",
+      "completeness_note": "36 grid codes covering full TF series, Forskrift A-J, ancillary services, gas grid codes"
     },
     {
       "id": "forsyningstilsynet",
@@ -50,12 +50,12 @@
       "authority": "Forsyningstilsynet",
       "url": "https://forsyningstilsynet.dk",
       "version": "2023-2024 decisions",
-      "item_count": 12,
+      "item_count": 58,
       "item_type": "decision",
-      "last_refresh": "2026-03-30",
+      "last_refresh": "2026-04-02",
       "refresh_frequency": "quarterly",
       "completeness": "partial",
-      "completeness_note": "Seed dataset — 12 of ~80+ tariff, methodology, and benchmark decisions"
+      "completeness_note": "58 decisions covering 14 DSO/TSO revenue caps, 10 heat utility tariffs, gas, methodologies, benchmarking, complaints"
     }
   ],
   "gaps": [
@@ -98,12 +98,12 @@
       "planned": false
     },
     {
-      "id": "incomplete-coverage",
-      "description": "~80% of existing regulations from all 4 regulators not yet ingested",
-      "reason": "Current dataset is seed data; full scraping pipeline planned",
-      "impact": "high",
+      "id": "full-text-ingestion",
+      "description": "Full document text not included — summaries only",
+      "reason": "Summaries are sufficient for search and reference; full text ingestion planned",
+      "impact": "medium",
       "planned": true,
-      "target_version": "0.2"
+      "target_version": "0.3"
     }
   ],
   "tools": [
@@ -153,8 +153,8 @@
   "summary": {
     "total_tools": 6,
     "total_sources": 4,
-    "total_items": 45,
-    "db_size_mb": 0.16,
+    "total_items": 197,
+    "db_size_mb": 0.35,
     "known_gaps": 6,
     "gaps_planned": 4
   }
