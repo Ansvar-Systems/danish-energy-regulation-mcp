@@ -1,0 +1,76 @@
+# sources.yml -- Data provenance metadata
+# Reference: docs/mcp-infrastructure-blueprint.md
+
+schema_version: "1.0"
+mcp_name: "Danish Energy Regulation MCP"
+category: "domain_intelligence"
+jurisdiction: "Denmark"
+
+sources:
+  - name: "Energistyrelsen (Danish Energy Agency)"
+    authority: "Energistyrelsen"
+    official_url: "https://ens.dk"
+    retrieval_method: "MANUAL_CURATION"
+    format: "HTML"
+    authentication: "none"
+    update_frequency: "quarterly"
+    license:
+      type: "Public Domain (Danish government publications)"
+      url: "https://ens.dk"
+      summary: "Danish government publications are freely available"
+    coverage:
+      scope: "Bekendtgorelser, vejledninger, retningslinjer for energisektoren"
+      item_count: 14
+    languages:
+      - "da"
+
+  - name: "Forsyningstilsynet (Danish Utility Regulator)"
+    authority: "Forsyningstilsynet"
+    official_url: "https://forsyningstilsynet.dk"
+    retrieval_method: "MANUAL_CURATION"
+    format: "HTML"
+    authentication: "none"
+    update_frequency: "quarterly"
+    license:
+      type: "Public Domain (Danish government publications)"
+      url: "https://forsyningstilsynet.dk"
+      summary: "Danish regulatory decisions are public records"
+    coverage:
+      scope: "Tariff decisions, revenue caps, methodology approvals, benchmarking"
+      item_count: 12
+    languages:
+      - "da"
+
+  - name: "Energinet (Danish TSO)"
+    authority: "Energinet"
+    official_url: "https://energinet.dk"
+    retrieval_method: "MANUAL_CURATION"
+    format: "PDF"
+    authentication: "none"
+    update_frequency: "quarterly"
+    license:
+      type: "Public Domain (Danish state-owned enterprise publications)"
+      url: "https://energinet.dk/regler/"
+      summary: "Technical regulations and market rules are public"
+    coverage:
+      scope: "Grid codes, technical regulations (TF series), market regulations (Forskrift series)"
+      item_count: 12
+    languages:
+      - "da"
+
+  - name: "Sikkerhedsstyrelsen (Safety Technology Authority)"
+    authority: "Sikkerhedsstyrelsen"
+    official_url: "https://sik.dk"
+    retrieval_method: "MANUAL_CURATION"
+    format: "HTML"
+    authentication: "none"
+    update_frequency: "quarterly"
+    license:
+      type: "Public Domain (Danish government publications)"
+      url: "https://sik.dk"
+      summary: "Danish safety regulations are public records"
+    coverage:
+      scope: "Electrical safety, gas safety, installation requirements"
+      item_count: 7
+    languages:
+      - "da"

@@ -1,0 +1,161 @@
+{
+  "schema_version": "1.0",
+  "mcp_name": "Danish Energy Regulation MCP",
+  "mcp_type": "domain_intelligence",
+  "coverage_date": "2026-03-30",
+  "database_version": "0.1.0",
+  "sources": [
+    {
+      "id": "energistyrelsen",
+      "name": "Energistyrelsen (Danish Energy Agency)",
+      "authority": "Energistyrelsen",
+      "url": "https://ens.dk",
+      "version": "2024-2025 publications",
+      "item_count": 14,
+      "item_type": "regulation",
+      "last_refresh": "2026-03-30",
+      "refresh_frequency": "quarterly",
+      "completeness": "partial",
+      "completeness_note": "Seed dataset — 14 of ~100+ active bekendtgoerelser and vejledninger"
+    },
+    {
+      "id": "sikkerhedsstyrelsen",
+      "name": "Sikkerhedsstyrelsen (Safety Technology Authority)",
+      "authority": "Sikkerhedsstyrelsen",
+      "url": "https://sik.dk",
+      "version": "Current safety rules",
+      "item_count": 7,
+      "item_type": "regulation",
+      "last_refresh": "2026-03-30",
+      "refresh_frequency": "quarterly",
+      "completeness": "partial",
+      "completeness_note": "Seed dataset — 7 of ~30 active safety BEKs and rules"
+    },
+    {
+      "id": "energinet",
+      "name": "Energinet (Danish TSO)",
+      "authority": "Energinet",
+      "url": "https://energinet.dk",
+      "version": "Current grid codes",
+      "item_count": 12,
+      "item_type": "grid_code",
+      "last_refresh": "2026-03-30",
+      "refresh_frequency": "quarterly",
+      "completeness": "partial",
+      "completeness_note": "Seed dataset — 12 of ~40+ TF and Forskrift series documents"
+    },
+    {
+      "id": "forsyningstilsynet",
+      "name": "Forsyningstilsynet (Danish Utility Regulator)",
+      "authority": "Forsyningstilsynet",
+      "url": "https://forsyningstilsynet.dk",
+      "version": "2023-2024 decisions",
+      "item_count": 12,
+      "item_type": "decision",
+      "last_refresh": "2026-03-30",
+      "refresh_frequency": "quarterly",
+      "completeness": "partial",
+      "completeness_note": "Seed dataset — 12 of ~80+ tariff, methodology, and benchmark decisions"
+    }
+  ],
+  "gaps": [
+    {
+      "id": "full-text",
+      "description": "Full original document text (only summaries included)",
+      "reason": "Summaries provide sufficient context for MCP tool queries",
+      "impact": "medium",
+      "planned": true,
+      "target_version": "0.2"
+    },
+    {
+      "id": "energiaftaler",
+      "description": "Political energy agreements (energiaftaler)",
+      "reason": "Not regulatory documents",
+      "impact": "low",
+      "planned": false
+    },
+    {
+      "id": "energiklagenaevnet",
+      "description": "Energiklagenaevnet (Energy Appeals Board) decisions",
+      "reason": "Separate data source requiring dedicated ingestion",
+      "impact": "medium",
+      "planned": true,
+      "target_version": "0.3"
+    },
+    {
+      "id": "repealed-regulations",
+      "description": "Historical and repealed regulations",
+      "reason": "Focus on current in-force regulations",
+      "impact": "low",
+      "planned": true,
+      "target_version": "0.3"
+    },
+    {
+      "id": "eu-energy-directives",
+      "description": "EU energy directives (Electricity Directive, RED III, EED, etc.)",
+      "reason": "Covered by the EU Regulations MCP",
+      "impact": "low",
+      "planned": false
+    },
+    {
+      "id": "incomplete-coverage",
+      "description": "~80% of existing regulations from all 4 regulators not yet ingested",
+      "reason": "Current dataset is seed data; full scraping pipeline planned",
+      "impact": "high",
+      "planned": true,
+      "target_version": "0.2"
+    }
+  ],
+  "tools": [
+    {
+      "name": "dk_energy_search_regulations",
+      "category": "search",
+      "description": "Full-text search across Danish energy regulations from Energistyrelsen, Forsyningstilsynet, and Sikkerhedsstyrelsen",
+      "data_sources": ["energistyrelsen", "sikkerhedsstyrelsen"],
+      "verified": true
+    },
+    {
+      "name": "dk_energy_get_regulation",
+      "category": "lookup",
+      "description": "Retrieve a specific regulation by reference string",
+      "data_sources": ["energistyrelsen", "sikkerhedsstyrelsen"],
+      "verified": true
+    },
+    {
+      "name": "dk_energy_search_grid_codes",
+      "category": "search",
+      "description": "Search Energinet grid codes, technical regulations, and market rules",
+      "data_sources": ["energinet"],
+      "verified": true
+    },
+    {
+      "name": "dk_energy_get_grid_code",
+      "category": "lookup",
+      "description": "Retrieve a specific grid code document by database ID",
+      "data_sources": ["energinet"],
+      "verified": true
+    },
+    {
+      "name": "dk_energy_search_decisions",
+      "category": "search",
+      "description": "Search Forsyningstilsynet tariff decisions and market rulings",
+      "data_sources": ["forsyningstilsynet"],
+      "verified": true
+    },
+    {
+      "name": "dk_energy_about",
+      "category": "meta",
+      "description": "Return server metadata, regulator list, tool list, data coverage",
+      "data_sources": [],
+      "verified": true
+    }
+  ],
+  "summary": {
+    "total_tools": 6,
+    "total_sources": 4,
+    "total_items": 45,
+    "db_size_mb": 0.16,
+    "known_gaps": 6,
+    "gaps_planned": 4
+  }
+}
