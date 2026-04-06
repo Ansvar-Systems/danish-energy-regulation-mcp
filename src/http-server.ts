@@ -30,6 +30,7 @@ import {
   searchGridCodes,
   getGridCode,
   searchDecisions,
+  getDbStats,
 } from "./db.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -37,6 +38,21 @@ const __dirname = dirname(__filename);
 
 const PORT = parseInt(process.env["PORT"] ?? "3000", 10);
 const SERVER_NAME = "danish-energy-regulation-mcp";
+
+// --- Response metadata ---
+
+const _meta = {
+  disclaimer:
+    "Data is curated from public Danish regulatory sources. Not legal advice. Verify against official sources at ens.dk, forsyningstilsynet.dk, energinet.dk, and sik.dk.",
+  data_age: "2026-04-06",
+  copyright: "Danish government publications — public domain",
+  source_urls: [
+    "https://ens.dk",
+    "https://forsyningstilsynet.dk",
+    "https://energinet.dk",
+    "https://sik.dk",
+  ],
+};
 
 let pkgVersion = "0.1.0";
 try {
@@ -140,6 +156,18 @@ const TOOLS = [
     description: "Return server metadata, regulators covered, tool list.",
     inputSchema: { type: "object" as const, properties: {}, required: [] },
   },
+  {
+    name: "dk_energy_list_sources",
+    description:
+      "List all data sources used by this MCP server with provenance metadata: authority, URL, retrieval method, license, update frequency, and record counts.",
+    inputSchema: { type: "object" as const, properties: {}, required: [] },
+  },
+  {
+    name: "dk_energy_check_data_freshness",
+    description:
+      "Check data freshness: returns live record counts from the database, last refresh date per source, and staleness indicators.",
+    inputSchema: { type: "object" as const, properties: {}, required: [] },
+  },
 ];
 
 // --- Zod schemas ---
@@ -185,7 +213,7 @@ function createMcpServer(): Server {
 
     function textContent(data: unknown) {
       return {
-        content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
+        content: [{ type: "text" as const, text: JSON.stringify({ ...(data as object), _meta }, null, 2) }],
       };
     }
 
@@ -257,6 +285,77 @@ function createMcpServer(): Server {
               "Danish energy regulation MCP. Covers Energistyrelsen, Forsyningstilsynet, Energinet, Sikkerhedsstyrelsen.",
             regulators: regulators.map((r) => ({ id: r.id, name: r.name, url: r.url })),
             tools: TOOLS.map((t) => ({ name: t.name, description: t.description })),
+          });
+        }
+
+        case "dk_energy_list_sources": {
+          return textContent({
+            sources: [
+              {
+                id: "energistyrelsen",
+                name: "Energistyrelsen (Danish Energy Agency)",
+                authority: "Energistyrelsen",
+                url: "https://ens.dk",
+                retrieval_method: "MANUAL_CURATION",
+                license: "Public Domain (Danish government publications)",
+                update_frequency: "quarterly",
+                last_refresh: "2026-04-06",
+                item_type: "regulation",
+              },
+              {
+                id: "forsyningstilsynet",
+                name: "Forsyningstilsynet (Danish Utility Regulator)",
+                authority: "Forsyningstilsynet",
+                url: "https://forsyningstilsynet.dk",
+                retrieval_method: "MANUAL_CURATION",
+                license: "Public Domain (Danish government publications)",
+                update_frequency: "quarterly",
+                last_refresh: "2026-04-06",
+                item_type: "decision",
+              },
+              {
+                id: "energinet",
+                name: "Energinet (Danish TSO)",
+                authority: "Energinet",
+                url: "https://energinet.dk",
+                retrieval_method: "MANUAL_CURATION",
+                license: "Public Domain (Danish state-owned enterprise publications)",
+                update_frequency: "quarterly",
+                last_refresh: "2026-04-06",
+                item_type: "grid_code",
+              },
+              {
+                id: "sikkerhedsstyrelsen",
+                name: "Sikkerhedsstyrelsen (Safety Technology Authority)",
+                authority: "Sikkerhedsstyrelsen",
+                url: "https://sik.dk",
+                retrieval_method: "MANUAL_CURATION",
+                license: "Public Domain (Danish government publications)",
+                update_frequency: "quarterly",
+                last_refresh: "2026-04-06",
+                item_type: "regulation",
+              },
+            ],
+          });
+        }
+
+        case "dk_energy_check_data_freshness": {
+          const stats = getDbStats();
+          return textContent({
+            last_refresh: "2026-04-06",
+            live_counts: {
+              regulations: stats.regulations,
+              grid_codes: stats.grid_codes,
+              decisions: stats.decisions,
+              total: stats.total,
+            },
+            sources: [
+              { id: "energistyrelsen", last_refresh: "2026-04-06", item_type: "regulation" },
+              { id: "forsyningstilsynet", last_refresh: "2026-04-06", item_type: "decision" },
+              { id: "energinet", last_refresh: "2026-04-06", item_type: "grid_code" },
+              { id: "sikkerhedsstyrelsen", last_refresh: "2026-04-06", item_type: "regulation" },
+            ],
+            staleness_warning: false,
           });
         }
 

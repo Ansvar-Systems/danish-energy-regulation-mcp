@@ -86,13 +86,13 @@ Full tool documentation: [TOOLS.md](TOOLS.md)
 
 | Source | Records | Content |
 |--------|---------|---------|
-| Energistyrelsen | 14 regulations | Bekendtgorelser, vejledninger on energy policy, NIS 2, renewable energy, efficiency |
-| Sikkerhedsstyrelsen | 7 regulations | Electrical safety (staerkstromsbekendtgorelsen), gas safety, installation rules |
-| Energinet | 12 grid codes | Technical regulations (TF series), market regulations, balancing, ancillary services |
-| Forsyningstilsynet | 12 decisions | Tariff decisions, revenue caps, methodology approvals, benchmarking, complaints |
-| **Total** | **45 records** | ~164 KB database |
+| Energistyrelsen | 79 regulations | Bekendtgorelser, vejledninger on energy policy, NIS 2, renewable energy, efficiency |
+| Sikkerhedsstyrelsen | 24 regulations | Electrical safety (staerkstromsbekendtgorelsen), gas safety, installation rules |
+| Energinet | 36 grid codes | Technical regulations (TF series), market regulations, balancing, ancillary services |
+| Forsyningstilsynet | 58 decisions | Tariff decisions, revenue caps, methodology approvals, benchmarking, complaints |
+| **Total** | **197 records** | ~500 KB database |
 
-This is a seed dataset. Full automated ingestion from retsinformation.dk, ens.dk, energinet.dk, forsyningstilsynet.dk, and sik.dk is planned.
+This is a partial dataset. Full automated ingestion from retsinformation.dk, ens.dk, energinet.dk, forsyningstilsynet.dk, and sik.dk is planned.
 
 **Language note:** All regulatory content is in Danish. Search queries work best in Danish (e.g., `elforsyning`, `vedvarende energi`, `tarif`, `tilslutning`).
 
