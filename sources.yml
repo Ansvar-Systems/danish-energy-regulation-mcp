@@ -20,7 +20,7 @@ sources:
       summary: "Danish government publications are freely available"
     coverage:
       scope: "Bekendtgorelser, vejledninger, retningslinjer for energisektoren"
-      item_count: 14
+      item_count: 79
     languages:
       - "da"
 
@@ -37,7 +37,7 @@ sources:
       summary: "Danish regulatory decisions are public records"
     coverage:
       scope: "Tariff decisions, revenue caps, methodology approvals, benchmarking"
-      item_count: 12
+      item_count: 58
     languages:
       - "da"
 
@@ -54,7 +54,7 @@ sources:
       summary: "Technical regulations and market rules are public"
     coverage:
       scope: "Grid codes, technical regulations (TF series), market regulations (Forskrift series)"
-      item_count: 12
+      item_count: 36
     languages:
       - "da"
 
@@ -71,6 +71,6 @@ sources:
       summary: "Danish safety regulations are public records"
     coverage:
       scope: "Electrical safety, gas safety, installation requirements"
-      item_count: 7
+      item_count: 24
     languages:
       - "da"

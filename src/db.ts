@@ -357,3 +357,20 @@ export function getDecision(id: number): Decision | null {
       .get(id) as Decision | undefined) ?? null
   );
 }
+
+// --- Stats ---
+
+export interface DbStats {
+  regulations: number;
+  grid_codes: number;
+  decisions: number;
+  total: number;
+}
+
+export function getDbStats(): DbStats {
+  const db = getDb();
+  const regulations = (db.prepare("SELECT COUNT(*) as n FROM regulations").get() as { n: number }).n;
+  const grid_codes = (db.prepare("SELECT COUNT(*) as n FROM grid_codes").get() as { n: number }).n;
+  const decisions = (db.prepare("SELECT COUNT(*) as n FROM decisions").get() as { n: number }).n;
+  return { regulations, grid_codes, decisions, total: regulations + grid_codes + decisions };
+}
