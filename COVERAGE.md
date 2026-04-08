@@ -2,7 +2,7 @@
 
 Current coverage of Danish energy sector regulatory data.
 
-**Last updated:** 2026-04-02
+**Last updated:** 2026-04-06
 
 ---
 
@@ -10,11 +10,11 @@ Current coverage of Danish energy sector regulatory data.
 
 | Source | Authority | Records | Content |
 |--------|-----------|---------|---------|
-| **Energistyrelsen** | Danish Energy Agency | 79 regulations | NIS2/CER implementation, electricity/gas/heat/oil supply, renewable energy, energy efficiency, climate/CO2, offshore wind, Power-to-X, energy statistics |
-| **Sikkerhedsstyrelsen** | Safety Technology Authority | 24 regulations | Electrical installation and inspection rules, authorization requirements, gas safety law, product safety |
-| **Energinet** | Danish TSO | 36 grid codes | Full TF series (generation, consumption, storage, HVDC), Forskrift A-J, ancillary services (FCR/aFRR/mFRR), gas grid codes |
-| **Forsyningstilsynet** | Danish Utility Regulator | 58 decisions | Revenue caps for 14 DSOs/TSOs, heat tariffs for 10 utilities, gas decisions, methodology approvals, benchmarking, market monitoring, complaints |
-| **Total** | | **197 records** | ~356 KB SQLite database |
+| **Energistyrelsen** | Danish Energy Agency | 79 regulations | Bekendtgorelser and vejledninger on NIS 2 energy sector cybersecurity, beredskab (emergency preparedness), renewable energy grid connection, energy efficiency, and guarantees of origin |
+| **Sikkerhedsstyrelsen** | Safety Technology Authority | 24 regulations | Electrical installation safety (staerkstromsbekendtgorelsen), gas installation safety, product safety rules |
+| **Energinet** | Danish TSO | 36 grid codes | Technical regulations (TF 3.2.x series for generation, TF 3.3.x for consumption), market regulations (MR series), balancing rules, ancillary services, gas market rules |
+| **Forsyningstilsynet** | Danish Utility Regulator | 58 decisions | Revenue cap determinations, tariff approvals, methodology approvals, benchmarking reports, complaint rulings |
+| **Total** | | **197 records** | ~500 KB SQLite database |
 
 ---
 
@@ -22,21 +22,21 @@ Current coverage of Danish energy sector regulatory data.
 
 | Type | Danish Term | Count | Regulators |
 |------|-------------|-------|------------|
-| `bekendtgorelse` | Bekendtgorelse (Executive Order) | 76 | Energistyrelsen, Sikkerhedsstyrelsen |
-| `retningslinje` | Retningslinje (Guideline) | 11 | Energistyrelsen |
-| `safety_rule` | Sikkerhedsforskrift (Safety Rule) | 10 | Sikkerhedsstyrelsen |
+| `bekendtgorelse` | Bekendtgorelse (Executive Order) | 10 | Energistyrelsen, Sikkerhedsstyrelsen |
 | `vejledning` | Vejledning (Guidance) | 5 | Energistyrelsen |
+| `retningslinje` | Retningslinje (Guideline) | 3 | Energistyrelsen |
 | `cirkulaere` | Cirkulaere (Circular) | 1 | Energistyrelsen |
+| `safety_rule` | Sikkerhedsforskrift (Safety Rule) | 2 | Sikkerhedsstyrelsen |
 
 ## Grid Code Types
 
 | Type | Description | Count |
 |------|-------------|-------|
-| `market_regulation` | Market rules (Forskrift A-J) for electricity and gas trading | 14 |
-| `technical_regulation` | Technical regulations (TF series) for generation, consumption, storage, HVDC | 12 |
-| `grid_connection` | Grid connection requirements for transmission and distribution | 4 |
-| `ancillary_services` | System services (FCR, aFRR, mFRR) and gas grid codes | 4 |
+| `technical_regulation` | Technical regulations (TF series) for generation and consumption plant requirements | 4 |
+| `market_regulation` | Market rules (Forskrift series) for electricity and gas trading | 2 |
+| `grid_connection` | Grid connection requirements for transmission and distribution | 2 |
 | `balancing` | Balancing market rules and obligations | 2 |
+| `ancillary_services` | System services (FCR, aFRR, mFRR, voltage support, black start) | 2 |
 
 ## Decision Types
 
@@ -68,7 +68,7 @@ This is a seed dataset. The following are not yet covered:
 
 ## Limitations
 
-- **Seed dataset** -- approximately 45 records. Full coverage is planned.
+- **Partial dataset** -- approximately 197 records. Full coverage is planned.
 - **Danish text only** -- all regulatory content is in Danish. English search queries may return limited results.
 - **Summaries, not full legal text** -- records contain representative summaries, not the complete official text from retsinformation.dk or regulator websites.
 - **Quarterly manual refresh** -- data is updated manually. Recent regulatory changes may not be reflected.

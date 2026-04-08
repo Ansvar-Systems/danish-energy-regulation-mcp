@@ -2,8 +2,8 @@
   "schema_version": "1.0",
   "mcp_name": "Danish Energy Regulation MCP",
   "mcp_type": "domain_intelligence",
-  "coverage_date": "2026-03-30",
-  "database_version": "0.1.0",
+  "coverage_date": "2026-04-06",
+  "database_version": "0.2.0",
   "sources": [
     {
       "id": "energistyrelsen",
@@ -13,10 +13,10 @@
       "version": "2024-2025 publications",
       "item_count": 79,
       "item_type": "regulation",
-      "last_refresh": "2026-04-02",
+      "last_refresh": "2026-04-06",
       "refresh_frequency": "quarterly",
       "completeness": "partial",
-      "completeness_note": "79 regulations covering NIS2/CER, electricity, renewables, efficiency, gas, heat, oil, climate, offshore wind, PtX"
+      "completeness_note": "79 of ~100+ active bekendtgoerelser and vejledninger"
     },
     {
       "id": "sikkerhedsstyrelsen",
@@ -26,10 +26,10 @@
       "version": "Current safety rules",
       "item_count": 24,
       "item_type": "regulation",
-      "last_refresh": "2026-04-02",
+      "last_refresh": "2026-04-06",
       "refresh_frequency": "quarterly",
       "completeness": "partial",
-      "completeness_note": "24 regulations covering electrical/gas safety, installations, inspections, authorization, product safety"
+      "completeness_note": "24 of ~30 active safety BEKs and rules"
     },
     {
       "id": "energinet",
@@ -39,23 +39,23 @@
       "version": "Current grid codes",
       "item_count": 36,
       "item_type": "grid_code",
-      "last_refresh": "2026-04-02",
+      "last_refresh": "2026-04-06",
       "refresh_frequency": "quarterly",
-      "completeness": "full",
-      "completeness_note": "36 grid codes covering full TF series, Forskrift A-J, ancillary services, gas grid codes"
+      "completeness": "partial",
+      "completeness_note": "36 of ~40+ TF and Forskrift series documents"
     },
     {
       "id": "forsyningstilsynet",
       "name": "Forsyningstilsynet (Danish Utility Regulator)",
       "authority": "Forsyningstilsynet",
       "url": "https://forsyningstilsynet.dk",
-      "version": "2023-2024 decisions",
+      "version": "2023-2025 decisions",
       "item_count": 58,
       "item_type": "decision",
-      "last_refresh": "2026-04-02",
+      "last_refresh": "2026-04-06",
       "refresh_frequency": "quarterly",
       "completeness": "partial",
-      "completeness_note": "58 decisions covering 14 DSO/TSO revenue caps, 10 heat utility tariffs, gas, methodologies, benchmarking, complaints"
+      "completeness_note": "58 of ~80+ tariff, methodology, and benchmark decisions"
     }
   ],
   "gaps": [
@@ -65,7 +65,7 @@
       "reason": "Summaries provide sufficient context for MCP tool queries",
       "impact": "medium",
       "planned": true,
-      "target_version": "0.2"
+      "target_version": "0.3"
     },
     {
       "id": "energiaftaler",
@@ -98,10 +98,10 @@
       "planned": false
     },
     {
-      "id": "full-text-ingestion",
-      "description": "Full document text not included — summaries only",
-      "reason": "Summaries are sufficient for search and reference; full text ingestion planned",
-      "impact": "medium",
+      "id": "incomplete-coverage",
+      "description": "~80% of existing regulations from all 4 regulators not yet ingested",
+      "reason": "Current dataset is seed data; full scraping pipeline planned",
+      "impact": "high",
       "planned": true,
       "target_version": "0.3"
     }
@@ -148,13 +148,27 @@
       "description": "Return server metadata, regulator list, tool list, data coverage",
       "data_sources": [],
       "verified": true
+    },
+    {
+      "name": "dk_energy_list_sources",
+      "category": "meta",
+      "description": "List all data sources with provenance metadata",
+      "data_sources": [],
+      "verified": true
+    },
+    {
+      "name": "dk_energy_check_data_freshness",
+      "category": "meta",
+      "description": "Check data freshness with live DB counts and last refresh dates",
+      "data_sources": [],
+      "verified": true
     }
   ],
   "summary": {
-    "total_tools": 6,
+    "total_tools": 8,
     "total_sources": 4,
     "total_items": 197,
-    "db_size_mb": 0.35,
+    "db_size_mb": 0.5,
     "known_gaps": 6,
     "gaps_planned": 4
   }

@@ -135,12 +135,6 @@ CREATE TRIGGER IF NOT EXISTS decisions_au AFTER UPDATE ON decisions BEGIN
   INSERT INTO decisions_fts(rowid, reference, title, text, parties)
   VALUES (new.id, new.reference, COALESCE(new.title, ''), new.text, COALESCE(new.parties, ''));
 END;
-
-CREATE TABLE IF NOT EXISTS db_metadata (
-  key          TEXT PRIMARY KEY,
-  value        TEXT,
-  last_updated TEXT DEFAULT (datetime('now'))
-);
 `;
 
 // --- Types ---
@@ -207,19 +201,6 @@ export function getDb(): Database.Database {
   return _db;
 }
 
-// --- FTS5 query sanitization ---
-
-const FTS5_BOOLEAN_OPS = /\b(AND|OR|NOT)\b/;
-
-export function sanitizeFtsInput(input: string): string {
-  if (FTS5_BOOLEAN_OPS.test(input)) {
-    // Preserve boolean structure: only strip dangerous chars, keep quotes for phrase matching
-    return input.replace(/[{}[\]^~*:/()]/g, ' ').replace(/\s+/g, ' ').trim();
-  }
-  // Standard sanitization for simple queries — strip all FTS5 special chars
-  return input.replace(/['"(){}[\]^~*:/\-]/g, ' ').replace(/\s+/g, ' ').trim();
-}
-
 // --- Regulator queries ---
 
 export function listRegulators(): Regulator[] {
@@ -242,11 +223,8 @@ export interface SearchRegulationsOptions {
 export function searchRegulations(opts: SearchRegulationsOptions): Regulation[] {
   const db = getDb();
   const limit = opts.limit ?? 20;
-  const sanitized = sanitizeFtsInput(opts.query);
-  if (!sanitized) return [];
-
   const conditions: string[] = [];
-  const params: Record<string, unknown> = { query: sanitized, limit };
+  const params: Record<string, unknown> = { query: opts.query, limit };
 
   if (opts.regulator) {
     conditions.push("r.regulator_id = :regulator");
@@ -263,32 +241,12 @@ export function searchRegulations(opts: SearchRegulationsOptions): Regulation[] 
 
   const where = conditions.length > 0 ? `AND ${conditions.join(" AND ")}` : "";
 
-  // Try FTS5 first
-  try {
-    const results = db
-      .prepare(
-        `SELECT r.* FROM regulations_fts f
-         JOIN regulations r ON r.id = f.rowid
-         WHERE regulations_fts MATCH :query ${where}
-         ORDER BY rank
-         LIMIT :limit`,
-      )
-      .all(params) as Regulation[];
-
-    if (results.length > 0) return results;
-  } catch {
-    // FTS5 syntax error — fall through to LIKE
-  }
-
-  // LIKE fallback
-  const likePattern = `%${sanitized.split(/\s+/).join('%')}%`;
-  params["like"] = likePattern;
-  delete params["query"];
-
   return db
     .prepare(
-      `SELECT * FROM regulations
-       WHERE (title LIKE :like OR text LIKE :like) ${where.replace(/\bf\./g, '')}
+      `SELECT r.* FROM regulations_fts f
+       JOIN regulations r ON r.id = f.rowid
+       WHERE regulations_fts MATCH :query ${where}
+       ORDER BY rank
        LIMIT :limit`,
     )
     .all(params) as Regulation[];
@@ -323,48 +281,28 @@ export interface SearchGridCodesOptions {
 export function searchGridCodes(opts: SearchGridCodesOptions): GridCode[] {
   const db = getDb();
   const limit = opts.limit ?? 20;
-  const sanitized = sanitizeFtsInput(opts.query);
-  if (!sanitized) return [];
-
-  const conditions: string[] = [];
-  const params: Record<string, unknown> = { query: sanitized, limit };
 
   if (opts.code_type) {
-    conditions.push("g.code_type = :code_type");
-    params["code_type"] = opts.code_type;
-  }
-
-  const where = conditions.length > 0 ? `AND ${conditions.join(" AND ")}` : "";
-
-  // Try FTS5 first
-  try {
-    const results = db
+    return db
       .prepare(
         `SELECT g.* FROM grid_codes_fts f
          JOIN grid_codes g ON g.id = f.rowid
-         WHERE grid_codes_fts MATCH :query ${where}
+         WHERE grid_codes_fts MATCH :query AND g.code_type = :code_type
          ORDER BY rank
          LIMIT :limit`,
       )
-      .all(params) as GridCode[];
-
-    if (results.length > 0) return results;
-  } catch {
-    // FTS5 syntax error — fall through to LIKE
+      .all({ query: opts.query, code_type: opts.code_type, limit }) as GridCode[];
   }
-
-  // LIKE fallback
-  const likePattern = `%${sanitized.split(/\s+/).join('%')}%`;
-  params["like"] = likePattern;
-  delete params["query"];
 
   return db
     .prepare(
-      `SELECT * FROM grid_codes
-       WHERE (title LIKE :like OR text LIKE :like) ${where.replace(/\bf\./g, '')}
+      `SELECT g.* FROM grid_codes_fts f
+       JOIN grid_codes g ON g.id = f.rowid
+       WHERE grid_codes_fts MATCH :query
+       ORDER BY rank
        LIMIT :limit`,
     )
-    .all(params) as GridCode[];
+    .all({ query: opts.query, limit }) as GridCode[];
 }
 
 export function getGridCode(id: number): GridCode | null {
@@ -387,48 +325,28 @@ export interface SearchDecisionsOptions {
 export function searchDecisions(opts: SearchDecisionsOptions): Decision[] {
   const db = getDb();
   const limit = opts.limit ?? 20;
-  const sanitized = sanitizeFtsInput(opts.query);
-  if (!sanitized) return [];
-
-  const conditions: string[] = [];
-  const params: Record<string, unknown> = { query: sanitized, limit };
 
   if (opts.decision_type) {
-    conditions.push("d.decision_type = :decision_type");
-    params["decision_type"] = opts.decision_type;
-  }
-
-  const where = conditions.length > 0 ? `AND ${conditions.join(" AND ")}` : "";
-
-  // Try FTS5 first
-  try {
-    const results = db
+    return db
       .prepare(
         `SELECT d.* FROM decisions_fts f
          JOIN decisions d ON d.id = f.rowid
-         WHERE decisions_fts MATCH :query ${where}
+         WHERE decisions_fts MATCH :query AND d.decision_type = :decision_type
          ORDER BY rank
          LIMIT :limit`,
       )
-      .all(params) as Decision[];
-
-    if (results.length > 0) return results;
-  } catch {
-    // FTS5 syntax error — fall through to LIKE
+      .all({ query: opts.query, decision_type: opts.decision_type, limit }) as Decision[];
   }
-
-  // LIKE fallback
-  const likePattern = `%${sanitized.split(/\s+/).join('%')}%`;
-  params["like"] = likePattern;
-  delete params["query"];
 
   return db
     .prepare(
-      `SELECT * FROM decisions
-       WHERE (title LIKE :like OR text LIKE :like OR parties LIKE :like) ${where.replace(/\bf\./g, '')}
+      `SELECT d.* FROM decisions_fts f
+       JOIN decisions d ON d.id = f.rowid
+       WHERE decisions_fts MATCH :query
+       ORDER BY rank
        LIMIT :limit`,
     )
-    .all(params) as Decision[];
+    .all({ query: opts.query, limit }) as Decision[];
 }
 
 export function getDecision(id: number): Decision | null {
@@ -440,27 +358,19 @@ export function getDecision(id: number): Decision | null {
   );
 }
 
-// --- Metadata queries ---
+// --- Stats ---
 
-export function getMetadataValue(key: string): string | null {
-  const db = getDb();
-  const row = db
-    .prepare("SELECT value FROM db_metadata WHERE key = ?")
-    .get(key) as { value: string } | undefined;
-  return row?.value ?? null;
+export interface DbStats {
+  regulations: number;
+  grid_codes: number;
+  decisions: number;
+  total: number;
 }
 
-export function getRecordCounts(): { regulations: number; grid_codes: number; decisions: number } {
+export function getDbStats(): DbStats {
   const db = getDb();
-  const regs = (db.prepare("SELECT count(*) as n FROM regulations").get() as { n: number }).n;
-  const gc = (db.prepare("SELECT count(*) as n FROM grid_codes").get() as { n: number }).n;
-  const dec = (db.prepare("SELECT count(*) as n FROM decisions").get() as { n: number }).n;
-  return { regulations: regs, grid_codes: gc, decisions: dec };
-}
-
-export function getRegulationCountByRegulator(regulatorId: string): number {
-  const db = getDb();
-  return (db
-    .prepare("SELECT count(*) as n FROM regulations WHERE regulator_id = ?")
-    .get(regulatorId) as { n: number }).n;
+  const regulations = (db.prepare("SELECT COUNT(*) as n FROM regulations").get() as { n: number }).n;
+  const grid_codes = (db.prepare("SELECT COUNT(*) as n FROM grid_codes").get() as { n: number }).n;
+  const decisions = (db.prepare("SELECT COUNT(*) as n FROM decisions").get() as { n: number }).n;
+  return { regulations, grid_codes, decisions, total: regulations + grid_codes + decisions };
 }
